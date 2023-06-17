@@ -1,5 +1,13 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 
 class ProductCharacteristicDto {
   @IsString()
@@ -9,12 +17,25 @@ class ProductCharacteristicDto {
   value: string;
 }
 
+class ProductAdvantagesOrDisadvantages {
+  @IsString()
+  title: string;
+
+  @IsString()
+  description: string;
+}
+
 export class CreateProductDto {
   @IsString()
   image: string;
 
   @IsString()
   title: string;
+
+  @Max(5)
+  @Min(1)
+  @IsNumber()
+  initialRating: number;
 
   @IsString()
   description: string;
@@ -29,11 +50,15 @@ export class CreateProductDto {
   @IsString()
   credit: number;
 
-  @IsString()
-  advantages: string;
+  @IsArray()
+  @ValidateNested()
+  @Type(() => ProductAdvantagesOrDisadvantages)
+  advantages: ProductAdvantagesOrDisadvantages[];
 
-  @IsString()
-  disAdvantages: string;
+  @IsArray()
+  @ValidateNested()
+  @Type(() => ProductAdvantagesOrDisadvantages)
+  disAdvantages: ProductAdvantagesOrDisadvantages[];
 
   @IsArray()
   @IsString({ each: true })

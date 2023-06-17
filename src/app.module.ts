@@ -16,10 +16,7 @@ import { UsersModule } from './users/users.module';
     ProductModule,
     TopPageModule,
     ConfigModule.forRoot(),
-    MongooseModule.forRoot('mongodb://127.0.0.1:27017/test', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    }),
+    MongooseModule.forRoot(process.env.MONGODB_URI),
     UsersModule,
   ],
   controllers: [AppController],

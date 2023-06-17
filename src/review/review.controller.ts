@@ -26,7 +26,12 @@ export class ReviewController {
   @UsePipes(new ValidationPipe())
   @Post('create')
   async create(@Body() dto: CreateReviewDto) {
-    return await this.reviewService.create(dto);
+    const review = await this.reviewService.create(dto);
+    if (!review) {
+      throw new HttpException('Something went wrong', 400);
+    } else {
+      return { message: 'Ваш отзыв успешно создан' };
+    }
   }
 
   @Delete(':id')

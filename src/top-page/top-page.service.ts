@@ -4,6 +4,7 @@ import { TopPageModel } from './top-page.model/top-page.model';
 import { Model } from 'mongoose';
 import { CreateTopPageDto } from './dto/create-top-page.dto';
 import { FindTopPageDto } from './dto/find-top-page.dto.ts';
+import { SearchByTextDto } from './dto/search-by-text.dto';
 
 @Injectable()
 export class TopPageService {
@@ -38,15 +39,22 @@ export class TopPageService {
       .match({ firstCategory })
       .group({
         _id: { secondCategory: '$secondCategory' },
-        pages: { $push: { alias: '$alias', title: '$title' } },
+        pages: {
+          $push: {
+            alias: '$alias',
+            title: '$title',
+            _id: '$_id',
+            category: '$category',
+          },
+        },
       })
       .exec();
   }
 
-  async searchByText(text: string) {
+  async searchByText(dto: SearchByTextDto) {
     return await this.topPageModel
       .find({
-        $text: { $search: text, $caseSensitive: false },
+        $text: { $search: dto.text, $caseSensitive: false },
       })
       .exec();
   }

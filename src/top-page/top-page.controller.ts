@@ -19,6 +19,7 @@ import { TOP_PAGE_NOT_FOUND } from './top-page.constants';
 import { TopPageModel } from './top-page.model/top-page.model';
 import { TopPageService } from './top-page.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { SearchByTextDto } from './dto/search-by-text.dto';
 
 @Controller('top-page')
 export class TopPageController {
@@ -83,8 +84,8 @@ export class TopPageController {
     return await this.topPageService.findByFirstCategory(dto);
   }
 
-  @Get('searchByText/:text')
-  async search(@Param('text') text: string) {
-    return await this.topPageService.searchByText(text);
+  @Post('searchByText')
+  async search(@Body() dto: SearchByTextDto) {
+    return await this.topPageService.searchByText(dto);
   }
 }

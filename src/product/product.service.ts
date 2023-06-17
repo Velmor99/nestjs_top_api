@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { CreateProductDto } from './dto/create-product.dto';
 import { FindProductDto } from './dto/find-product.dto.ts';
 import { ReviewModel } from '../review/review.model';
+import { SearchProductsByTextDto } from './dto/search-products.dto';
 
 @Injectable()
 export class ProductService {
@@ -31,7 +32,7 @@ export class ProductService {
       .exec();
   }
 
-  // находит продукт вместе со всеми его отзывами
+  // находит продукты вместе со всеми его отзывами
   async findWithReviews(dto: FindProductDto) {
     return (await this.productModel
       .aggregate([
@@ -59,19 +60,20 @@ export class ProductService {
         {
           $addFields: {
             reviewCount: { $size: '$reviews' }, // так как мы выше добавили поле review с помощью $lookup, то мы можем ссылаться на это поле через '$review'
-            reviewAwg: { $avg: '$reviews.rating' },
-            reviews: {
-              $function: {
-                //сдесь описана функция mongodb, первый параметр это сама функция в виде строки
-                //второй параметр это массив аргументов и третий это язык
-                body: `function (reviews) {
-                  reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                  return reviews;
-                }`,
-                args: ['$reviews'],
-                lang: 'js',
-              },
-            },
+            reviewAvg: { $avg: '$reviews.rating' },
+            reviews: '$reviews', // $functions я не могу использовать на своем пакете mongodb
+            // reviews: {
+            // $function: {
+            //   //сдесь описана функция mongodb, первый параметр это сама функция в виде строки
+            //   //второй параметр это массив аргументов и третий это язык
+            //   body: `function (reviews) {
+            //     reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            //     return reviews;
+            //   }`,
+            //   args: ['$reviews'],
+            //   lang: 'js',
+            // },
+            // },
           },
         }, // добавляем доп поля для детальной информации
       ])
@@ -81,5 +83,40 @@ export class ProductService {
         reviewCount: number;
         reviewAwg: number;
       }[]; // привязка к типу дополнительных полей
+  }
+
+  async searchProductsByText(dto: SearchProductsByTextDto) {
+    return (await this.productModel
+      .aggregate()
+      .match({
+        $text: { $search: dto.text },
+      })
+      .sort({ _id: 1 })
+      .lookup({
+        from: 'reviewmodels',
+        localField: '_id',
+        foreignField: 'productId',
+        as: 'reviews',
+      })
+      .addFields({
+        reviewCount: { $size: '$reviews' },
+        reviewAvg: { $avg: '$reviews.rating' },
+        reviews: {
+          $function: {
+            body: `function (reviews) {
+                  reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                  return reviews;
+                }`,
+            args: ['$reviews'],
+            lang: 'js',
+          },
+        },
+      })
+      .exec()) as ProductModel &
+      {
+        review: ReviewModel[];
+        reviewCount: number;
+        reviewAwg: number;
+      }[];
   }
 }

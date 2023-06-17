@@ -19,6 +19,7 @@ import { NOT_FOUND_PRODUCT_ERROR } from './product.constants';
 import { ProductModel } from './product.model/product.model';
 import { ProductService } from './product.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { SearchProductsByTextDto } from './dto/search-products.dto';
 
 @Controller('product')
 export class ProductController {
@@ -26,6 +27,12 @@ export class ProductController {
   @Post('create')
   async create(@Body() dto: CreateProductDto) {
     return await this.productService.create(dto);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @Post('searchByText')
+  async searchProductsByText(@Body() dto: SearchProductsByTextDto) {
+    return this.productService.searchProductsByText(dto);
   }
 
   @UseGuards(JwtAuthGuard)

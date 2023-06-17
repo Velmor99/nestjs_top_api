@@ -9,9 +9,17 @@ class ProductCharacteristic {
   value: string;
 }
 
+class ProductAdvantagesOrDisadvantages {
+  @Prop()
+  title: string;
+
+  @Prop()
+  description: string;
+}
+
 export type ProductDocument = HydratedDocument<ProductModel>;
 
-@Schema()
+@Schema({ timestamps: true })
 export class ProductModel {
   _id: Types.ObjectId;
 
@@ -20,6 +28,9 @@ export class ProductModel {
 
   @Prop()
   title: string;
+
+  @Prop()
+  initialRating: number;
 
   @Prop()
   description: string;
@@ -33,11 +44,11 @@ export class ProductModel {
   @Prop()
   credit: number;
 
-  @Prop()
-  advantages: string;
+  @Prop({ type: () => [ProductAdvantagesOrDisadvantages] })
+  advantages: ProductAdvantagesOrDisadvantages[];
 
-  @Prop()
-  disAdvantages: string;
+  @Prop({ type: () => [ProductAdvantagesOrDisadvantages] })
+  disAdvantages: ProductAdvantagesOrDisadvantages[];
 
   @Prop({ type: () => [String] })
   categories: string[];
@@ -50,3 +61,4 @@ export class ProductModel {
 }
 
 export const ProductSchema = SchemaFactory.createForClass(ProductModel);
+ProductSchema.index({ description: 'text', tags: 'text', title: 'text' });
